@@ -1,0 +1,25 @@
+{
+  "name": "uni-news-notifier",
+  "version": "1.0.0",
+  "description": "Notify discord channels whenever there's new notification on school's page",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "notifier",
+    "university",
+    "discord.js"
+  ],
+  "author": "Fudayl Cavus",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/rest": "^0.3.0",
+    "axios": "^0.26.0",
+    "cheerio": "^1.0.0-rc.10",
+    "discord-api-types": "^0.26.1",
+    "discord.js": "^13.6.0",
+    "node": "^17.4.0",
+    "validator": "^13.7.0"
+  }
+}

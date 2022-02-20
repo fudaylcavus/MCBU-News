@@ -1,61 +1,39 @@
 const axios = require('axios').default
 const cheerio = require('cheerio')
-const { MessageEmbed } = require('discord.js')
-const isURL = require('validator/lib/isURL')
+const { getEmbedMsgForNews } = require('./embed')
 let lastFetchedNews;
 
 
 const getNotSentNews = (currentNewsData) => {
     let notSentNews = new Array();
     for (let i = 0; i < lastFetchedNews.length; i++) {
-        if (i >= currentNewsData.length) {
-            notSentNews = notSentNews.concat(lastFetchedNews.slice(i))
-            break;
-        }
-        if (lastFetchedNews[i].description !== currentNewsData[i].description) {
+        if (lastFetchedNews[i].description !== currentNewsData[0].description) {
             notSentNews.push(lastFetchedNews[i]);
         } else {
             break;
         }
     }
-    console.log(notSentNews)
-    return notSentNews;
+    return [notSentNews, lastFetchedNews];
 }
 
 const anyNewInformation = async (currentNewsData, baseURL) => {
     const news = parseNewsFromHTMLData(await fetchHtmlDataFrom(baseURL));
     lastFetchedNews = news;
-    console.log(currentNewsData)
     if (!currentNewsData.length) return true;
-    return !currentNewsData.every((newsObj, idx) => {
-        console.log(newsObj.description, news[idx].description)
-        return newsObj.description === news[idx].description;
-    })
+    return currentNewsData[0].description != news[0].description;
 }
-
-const getEmbedMsgForNews = ({ header, description, url, banner }, baseURL) => {
-    let embedMsg = new MessageEmbed();
-    if (isURL(url)) {
-        embedMsg.setURL(url);
-    }
-    embedMsg.setTitle(header);
-    if (isURL(baseURL)) {
-        embedMsg.setImage(baseURL + banner);
-    }
-    embedMsg.setDescription(description ? description : "Hi!");
-    embedMsg.setColor("#01bad8")
-    embedMsg.setAuthor({ name: 'Taze Duyuru!!!' })
-    embedMsg.setTimestamp()
-    embedMsg.setFooter({ text: 'Created by Fudayl Cavus' });
-    return embedMsg;
-}
+// https://discord.com/api/oauth2/authorize?client_id=944973383341338655&permissions=2147699712&scope=bot
 
 const parseNewsFromHTMLData = htmlData => {
     const news = [];
     const $ = cheerio.load(htmlData);
+    // banner image is optional, if you don't have any image on website
+    // delete the line below 
     const banner = $('#ucWebLogo_imgBanner').attr('src')
+
+    // If you parse url, header, description for your own website
+    // Everthing should still work fine!, only change this lines below
     $('li.CustomLi').each((idx, el) => {
-        // console.log($(el).html())
         const url = $(el).find('a').attr('href')
         const header = $(el).find('.CustomLiHeader').html();
         const description = $(el).find('.CustomLiP').text();

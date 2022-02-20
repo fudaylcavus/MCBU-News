@@ -1,83 +1,159 @@
 const client = require('./discord_rest')
 const { TOKEN, PREFIX, ADMIN_ID } = require('./credentials/discord_credentials.json')
-const { 
-  parseNewsFromHTMLData, 
-  anyNewInformation, 
-  fetchHtmlDataFrom, 
+const {
+  parseNewsFromHTMLData,
+  anyNewInformation,
+  fetchHtmlDataFrom,
   getEmbedMsgForNews,
   getNotSentNews } = require('./utils/news.js')
+const { generateEmbed } = require('./utils/embed')
 
 
 var news;
 var subs;
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
+  client.user.setActivity({
+    type: 'WATCHING', name: '-help'
+  })
   news = new Map(); // baseURL: news[]
   subs = new Map(); // baseURL: channelIDs 
-  // client.guilds.
   setInterval(async () => {
-    news.forEach(async (news, baseURL) => {
-      let anyNew = await anyNewInformation(news, baseURL)
+    news.forEach(async (aNews, baseURL) => {
+      let anyNew = await anyNewInformation(aNews, baseURL)
       if (anyNew) {
-        let notSentNews = getNotSentNews(news);
-        subs.get(baseURL).forEach( channelId => {
+        let [notSentNews, lastFetchedNews] = getNotSentNews(aNews);
+        news.set(baseURL, lastFetchedNews);
+        subs.get(baseURL).forEach(channelId => {
           let notificationChannel = client.channels.cache.find(channel => channel.id === channelId);
           notSentNews.forEach(newsObj => {
-            notificationChannel.send({embeds: [getEmbedMsgForNews(newsObj, baseURL)]})
+            notificationChannel.send({ embeds: [getEmbedMsgForNews(newsObj, baseURL)] })
           })
         })
       }
     })
-  }, 1000)
+  }, 5000)
 
 });
 
+client.on('guildCreate', (guild) => {
+  commandsFields = [
+    { name: '-help', value: 'Get usage of commands'},
+    { name: '/subscribe-news', value: 'Get notification whenever the subscribed department has new information'},
+    { name: '/unsubscribe-news', value: 'Stops sending you notification for certain department'},
+    { name: '-invite', value: "Get link to invite me (if you want to add some other servers)"}
+  ]
+  guild.systemChannel?.send({ embeds: [generateEmbed('Hi there!', "I'm here to help you, here are the usage of the commands:", commandsFields)]})
+})
+
 client.on('messageCreate', async (message) => {
   if (!message.content.startsWith(PREFIX)) return;
-  if (message.author.id != ADMIN_ID) {
-    message.channel.send('No permission!');
-    return;
-  }
   let args = message.content.slice(PREFIX.length).split(' ')
   let cmd = args[0];
 
+  if (cmd === 'help') {
+    commandsFields = [
+        { name: '-help', value: 'Get usage of commands'},
+        { name: '/subscribe-news [department]', value: 'Get notification whenever the subscribed department has new information'},
+        { name: '/unsubscribe-news [department]', value: 'Stops sending you notification for certain department'},
+        { name: '-invite', value: "Get link to invite me (if you want to add some other servers)"}
+      ]
+    message.channel.send({ embeds: [generateEmbed('MCBU News', "Here are the usage of the commands:", commandsFields)]})
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+  if (cmd === 'member-count') {
+    if (message.author.id != ADMIN_ID) return;
+    let sum = 0;
+    client.guilds.cache.forEach(guild => {
+      sum += guild.memberCount;
+    })
+    message.channel.send(`Currently we're providing service to approximately ${sum} people, Sir!`)
+  }
+
+  if (cmd === 'invite') {
+    let embedMsg = generateEmbed(
+      'MCBU News', 
+      'I would be so happy, if you invite me to your server :)', 
+      [{name: "Link: ", value: "[Invitation Link](https://discord.com/api/oauth2/authorize?client_id=944973383341338655&permissions=117760&scope=bot%20applications.commands)"}]
+      )
+    message.channel.send({ embeds: [embedMsg]})
+      .catch(err => {
+        console.log(err)
+      })
+  }
+
+  
   if (cmd === "fetch-data") {
     if (!args[1]) {
-      message.channel.send("You have to provide URL to fetch data!");
+      message.channel.send("You have to provide URL to fetch data!")
+        .catch(err => {
+          console.log(err)
+        })
       return;
     }
     const news = await parseNewsFromHTMLData(await fetchHtmlDataFrom(args[1]))
     message.channel.send({ embeds: [getEmbedMsgForNews(news[0], args[1])] })
-  }
-
-  if (cmd === 'subscribe-news') {
-    if (!args[1]) {
-      message.channel.send("You have to provide URL to subscribe!")
-      return;
-    }
-    
-    let baseURL = args[1];
-    let channelId = message.channelId;
-    // message.channel.send("If you're subscribing first time, you'll get every news at once, to calibrate the system...")
-
-    if (subs.get(baseURL)?.includes(channelId)) {
-      message.channel.send("You have already subscribed to this URL for this channel!")  
-      return;
-    } else {
-      subs.set(baseURL,new Array());
-      news.set(baseURL, []);
-      subs.get(baseURL).push(channelId)
-      message.channel.send("This channel is successfuly subscribed to news of " + baseURL)
-    }
-
+      .catch(err => {
+        console.log(err)
+      })
   }
 })
+
+
+
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;
 
-  if (interaction.commandName === 'ping') {
-    await interaction.reply('Pong!');
+  if (!interaction.memberPermissions.has('ADMINISTRATOR')) {
+    await interaction.reply("Couldn't accomplished, missing permission ADMINISTRATOR!")
+    return;
+  }
+
+  if (interaction.commandName === 'unsubscribe-news') {
+    let url = interaction.options.getString('department');
+    let channelId = interaction.channelId;
+    let subsForURL = subs.get(url)
+
+    if (subsForURL) {
+      let indexOfChannelId = subsForURL.indexOf(channelId);
+      if (indexOfChannelId !== -1) {
+        subsForURL.splice(indexOfChannelId, 1);
+        await interaction.reply(`You will no longer get news from \`${url}\``)
+      }
+    } else {
+        await interaction.reply(`No subscription found for \`${url}\` in this channel!`);
+    }
+  }
+
+  if (interaction.commandName === 'subscribe-news') {
+    let baseURL = interaction.options.getString('department')
+    let channelId = interaction.channelId 
+
+    if (news.get(baseURL)) {
+      if (subs.get(baseURL).includes(channelId)) {
+        await interaction.reply("You have already subscribed to this URL for this channel!")
+        return;
+      }
+      subs.get(baseURL).push(channelId)
+    } else {
+      // Fetch current news for given URL, to don't send every old message at once!
+      // news.set(baseURL, parseNewsFromHTMLData(await fetchHtmlDataFrom(baseURL)));
+      
+      // It should only send the news that published later than a news below
+      // For test purposes
+      news.set(baseURL, [{
+        header: '14.Şub.22 :: Öğrenci',
+        description: '2022 ULUSAL STAJ PROGRAMI',
+        banner: 'https://muhendislik.mcbu.edu.tr/db_images/banner/logo-5TR.png',
+        url: 'http://muhendislik.mcbu.edu.tr/db_images/site_100/file/ulusalstajprogrami.pdf'
+      }])
+      subs.set(baseURL, [channelId]);
+    }
+    await interaction.reply(`This channel is successfuly subscribed to news of \`${baseURL}\``)
   }
 });
 
