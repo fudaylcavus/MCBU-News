@@ -39,6 +39,8 @@ client.on('ready', async () => {
       subs.set(department_url, [channel_id]);
     }
   });
+  console.log('initial subs:')
+  console.log(subs)
 
   setInterval(async () => {
     news.forEach(async (aNews, baseURL) => {
@@ -182,9 +184,9 @@ client.on('interactionCreate', async interaction => {
         }
         await interaction.reply(`You will no longer get news from \`${url}\``)
       }
-    } else {
-      await interaction.reply(`No subscription found for \`${url}\` in this channel!`);
-    }
+    } 
+    await interaction.reply(`No subscription found for \`${url}\` in this channel!`);
+    
   }
 
   if (interaction.commandName === 'subscribe-news') {
