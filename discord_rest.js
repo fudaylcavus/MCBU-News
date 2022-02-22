@@ -49,10 +49,10 @@ const rest = new REST({ version: '9' }).setToken(DC_TOKEN);
       { body: commands },
     );
 
-    // await rest.put(
-    //   Routes.applicationCommands("504398839625809951"),
-    //   { body: commands}
-    // )
+    await rest.put(
+      Routes.applicationCommands(DC_APP_ID),
+      { body: commands}
+    )
 
     console.log('Successfully reloaded application (/) commands.');
   } catch (error) {

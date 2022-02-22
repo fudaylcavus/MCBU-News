@@ -12,7 +12,7 @@ const getEmbedMsgForNews = ({ header, description, url, banner }, baseURL) => {
     }
     embedMsg.setDescription(description ? description : "Hi!");
     embedMsg.setColor("#01bad8")
-    embedMsg.setAuthor({ name: 'Fresh News!!!' })
+    embedMsg.setAuthor({ name: 'Fresh News!' })
     embedMsg.setTimestamp()
     embedMsg.setFooter({ text: 'Created by Fudayl Cavus' });
     return embedMsg;

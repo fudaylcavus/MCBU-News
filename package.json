@@ -4,6 +4,7 @@
   "description": "Notify discord channels whenever there's new notification on school's page",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "keywords": [

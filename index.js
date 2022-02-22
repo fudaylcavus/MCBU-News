@@ -1,7 +1,7 @@
 const dotenv = require('dotenv')
 dotenv.config();
 const client = require('./discord_rest')
-const { DC_TOKEN, DC_ADMIN_ID } = process.env;
+const { DC_TOKEN, DC_ADMIN_ID, CONTROL_INTERVAL } = process.env;
 const { generateEmbed } = require('./utils/embed')
 const { PREFIX } = require('./credentials/discord_credentials.json')
 const {
@@ -16,7 +16,6 @@ const {
   getSubscriptions,
   saveSubscription,
   saveUnsubscription, } = require('./utils/db');
-const { default: isPostalCode } = require('validator/lib/isPostalCode');
 
 var news;
 var subs;
@@ -55,7 +54,7 @@ client.on('ready', async () => {
         })
       }
     })
-  }, 5000)
+  }, CONTROL_INTERVAL)
 
 });
 
@@ -103,7 +102,7 @@ client.on('messageCreate', async (message) => {
       channel.send({ 
         embeds: [
           generateEmbed(
-            'Important', 
+            'Important!', 
             words.join(' '), 
             [{name: 'Sender', value: message.author.username}]
           )] 
@@ -188,7 +187,7 @@ client.on('interactionCreate', async interaction => {
 
     if (news.get(baseURL)) {
       if (subs.get(baseURL).includes(channelId)) {
-        await interaction.reply("You have already subscribed to this URL for this channel!")
+        await interaction.reply("You have already subscribed to "+ baseURL +" for this channel!")
         return;
       }
       subs.get(baseURL).push(channelId)

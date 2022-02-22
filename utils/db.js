@@ -4,13 +4,14 @@ const pool = new Pool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT
+    port: process.env.DB_PORT,
+    ssl: { rejectUnauthorized: false } 
 })
 
 const connectToDB = () => {
-    pool.connect().then(() => {
+    pool.connect().then(async () => {
         console.log("Succesffuly connected to DB!")
-        pool.query(`
+        await pool.query(`
         CREATE TABLE IF NOT EXISTS subscription (
         channel_id varchar(25) NOT NULL,
         department_url varchar(50) NOT NULL,
