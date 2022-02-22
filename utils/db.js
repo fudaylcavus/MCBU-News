@@ -8,20 +8,19 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false } 
 })
 
-const connectToDB = () => {
-    pool.connect().then(async () => {
+const connectToDB = async () => {
+    await pool.connect().then(async () => {
         console.log("Succesffuly connected to DB!")
         await pool.query(`
         CREATE TABLE IF NOT EXISTS subscription (
         channel_id varchar(25) NOT NULL,
         department_url varchar(50) NOT NULL,
         UNIQUE (channel_id, department_url)
-      )`)
+        )`)
         .catch(err => {
             console.log(err)
         })
     }).catch(err => console.log(err))
-
 }
 
 const poolQuery = async (queryString) => {

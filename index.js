@@ -26,19 +26,23 @@ client.on('ready', async () => {
   })
   news = new Map(); // baseURL: news[]
   subs = new Map(); // baseURL: channelIDs 
-  connectToDB();
+  await connectToDB();
   const DATA = await getSubscriptions();
   if (!DATA) {
     console.log("Problem occured while fetching data but continuing without old datas!")
-  }
-  DATA?.rows.forEach(async ({ channel_id, department_url }) => {
-    if (news.get(department_url)) {
-      subs.get(department_url).push(channelId)
-    } else {
-      news.set(department_url, parseNewsFromHTMLData(await fetchHtmlDataFrom(department_url)))
-      subs.set(department_url, [channel_id]);
+  } else {
+    for (let i = 0; i < DATA.rows.length; i++) {
+      let department_url = DATA.rows[i].department_url;
+      let channel_id = DATA.rows[i].channel_id;
+      if (news.get(department_url)) {
+        subs.get(department_url).push(channel_id)
+      } else {
+        news.set(department_url, parseNewsFromHTMLData(await fetchHtmlDataFrom(department_url)))
+        subs.set(department_url, [channel_id]);
+      }
     }
-  });
+  }
+  console.log(news)
   console.log('initial subs:')
   console.log(subs)
 
@@ -52,7 +56,7 @@ client.on('ready', async () => {
           let notificationChannel = client.channels.cache.find(channel => channel.id === channelId);
           notSentNews.forEach(newsObj => {
             notificationChannel.send({ embeds: [getEmbedMsgForNews(newsObj, baseURL)] })
-            .catch(err=>console.log(err))
+              .catch(err => console.log(err))
           })
         })
       }
@@ -68,7 +72,7 @@ client.on('guildCreate', (guild) => {
     { name: '/unsubscribe-news', value: 'Stops sending you notification for certain department' },
     { name: '-invite', value: "Get link to invite me (if you want to add some other servers)" }
   ]
-  guild.systemChannel?.send({ embeds: [generateEmbed('Hi there!', "I'm here to help you, here are the usage of the commands:", commandsFields)] }).catch(err => console.log(err))   
+  guild.systemChannel?.send({ embeds: [generateEmbed('Hi there!', "I'm here to help you, here are the usage of the commands:", commandsFields)] }).catch(err => console.log(err))
 })
 
 client.on('messageCreate', async (message) => {
@@ -102,16 +106,16 @@ client.on('messageCreate', async (message) => {
 
     let channels = client.channels.cache.filter(channel => channelIds.includes(channel.id))
     channels.forEach(channel => {
-      channel.send({ 
+      channel.send({
         embeds: [
           generateEmbed(
-            'Important!', 
-            words.join(' '), 
-            [{name: 'Sender', value: message.author.username}]
-          )] 
+            'Important!',
+            words.join(' '),
+            [{ name: 'Sender', value: message.author.username }]
+          )]
       }).catch(err => {
-          console.log(err)
-        })
+        console.log(err)
+      })
     })
   }
 
@@ -121,10 +125,10 @@ client.on('messageCreate', async (message) => {
     client.guilds.cache.forEach(guild => {
       sum += guild.memberCount;
     })
-    message.channel.send(`Currently we're providing service to approximately ${sum} people, Sir!`) 
-    .catch(err => {
-      console.log(err)
-    })
+    message.channel.send(`Currently we're providing service to approximately ${sum} people, Sir!`)
+      .catch(err => {
+        console.log(err)
+      })
   }
 
   if (cmd === 'invite') {
@@ -184,9 +188,9 @@ client.on('interactionCreate', async interaction => {
         }
         await interaction.reply(`You will no longer get news from \`${url}\``)
       }
-    } 
+    }
     await interaction.reply(`No subscription found for \`${url}\` in this channel!`);
-    
+
   }
 
   if (interaction.commandName === 'subscribe-news') {
@@ -195,7 +199,7 @@ client.on('interactionCreate', async interaction => {
 
     if (news.get(baseURL)) {
       if (subs.get(baseURL).includes(channelId)) {
-        await interaction.reply("You have already subscribed to "+ baseURL +" for this channel!")
+        await interaction.reply("You have already subscribed to " + baseURL + " for this channel!")
         return;
       }
       subs.get(baseURL).push(channelId)
