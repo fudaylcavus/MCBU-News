@@ -50,6 +50,7 @@ client.on('ready', async () => {
           let notificationChannel = client.channels.cache.find(channel => channel.id === channelId);
           notSentNews.forEach(newsObj => {
             notificationChannel.send({ embeds: [getEmbedMsgForNews(newsObj, baseURL)] })
+            .catch(err=>console.log(err))
           })
         })
       }
@@ -65,7 +66,7 @@ client.on('guildCreate', (guild) => {
     { name: '/unsubscribe-news', value: 'Stops sending you notification for certain department' },
     { name: '-invite', value: "Get link to invite me (if you want to add some other servers)" }
   ]
-  guild.systemChannel?.send({ embeds: [generateEmbed('Hi there!', "I'm here to help you, here are the usage of the commands:", commandsFields)] })
+  guild.systemChannel?.send({ embeds: [generateEmbed('Hi there!', "I'm here to help you, here are the usage of the commands:", commandsFields)] }).catch(err => console.log(err))   
 })
 
 client.on('messageCreate', async (message) => {
@@ -106,7 +107,9 @@ client.on('messageCreate', async (message) => {
             words.join(' '), 
             [{name: 'Sender', value: message.author.username}]
           )] 
-      });
+      }).catch(err => {
+          console.log(err)
+        })
     })
   }
 
@@ -116,7 +119,10 @@ client.on('messageCreate', async (message) => {
     client.guilds.cache.forEach(guild => {
       sum += guild.memberCount;
     })
-    message.channel.send(`Currently we're providing service to approximately ${sum} people, Sir!`)
+    message.channel.send(`Currently we're providing service to approximately ${sum} people, Sir!`) 
+    .catch(err => {
+      console.log(err)
+    })
   }
 
   if (cmd === 'invite') {
