@@ -3,33 +3,39 @@ const pool = new Pool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT
 })
 
-const poolQuery = (queryString) => {
-    let returnObj;
-    pool.query(queryString, (err, result) => {
-        if (err) {
-            console.log(err.message);
-            returnObj = err;
-            return;
-        } 
-        returnObj = result.rows;
-    })
-    return returnObj;
+const connectToDB = () => {
+    pool.connect().then(() => {
+        console.log("Succesffuly connected to DB!")
+        pool.query(`
+        CREATE TABLE IF NOT EXISTS subscription (
+        channel_id varchar(25) NOT NULL,
+        department_url varchar(50) NOT NULL,
+        UNIQUE (channel_id, department_url)
+      )`)
+        .catch(err => {
+            console.log(err)
+        })
+    }).catch(err => console.log(err))
+
+}
+
+const poolQuery = async (queryString) => {
+    return await pool.query(queryString).catch(err => console.log(err))
 }
 
 const saveSubscription = (channelId, departmentURL) => {
-    let queryString = `INSERT INTO subscription (channel_id, department_url) VALUES (${channelId}, ${departmentURL})`;
+    let queryString = `INSERT INTO subscription (channel_id, department_url) VALUES ('${channelId}', '${departmentURL}');`;
     return poolQuery(queryString);
-   
+
 }
 
 
 const saveUnsubscription = (channelId, departmentURL) => {
-    let queryString = `DELETE FROM subscription WHERE channel_id = ${channelId} AND department_url = ${departmentURL}`;
+    let queryString = `DELETE FROM subscription WHERE channel_id = '${channelId}' AND department_url = '${departmentURL}'`;
     return poolQuery(queryString);
 
 }
@@ -40,6 +46,7 @@ const getSubscriptions = () => {
 }
 
 module.exports = {
+    connectToDB,
     saveSubscription,
     saveUnsubscription,
     getSubscriptions

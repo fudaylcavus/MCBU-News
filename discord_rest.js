@@ -1,7 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { TOKEN, APP_ID } = require('./credentials/discord_credentials.json')
+const { DC_TOKEN, DC_APP_ID } = process.env 
 const { Client, Intents } = require('discord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
@@ -38,14 +38,14 @@ const commands = [
   unsubCommand.toJSON()
 ]
 
-const rest = new REST({ version: '9' }).setToken(TOKEN);
+const rest = new REST({ version: '9' }).setToken(DC_TOKEN);
 
 (async () => {
   try {
     console.log('Started refreshing application (/) commands.');
 
     await rest.put(
-      Routes.applicationGuildCommands(APP_ID, "443038754417147906"),
+      Routes.applicationGuildCommands(DC_APP_ID, "443038754417147906"),
       { body: commands },
     );
 

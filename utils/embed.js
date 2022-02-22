@@ -19,12 +19,14 @@ const getEmbedMsgForNews = ({ header, description, url, banner }, baseURL) => {
 }
 
 const generateEmbed = (title, description, fields, color='#01bad8') => {
-    return new MessageEmbed()
+    let messageEmbed = new MessageEmbed()
         .setTitle(title)
         .setDescription(description)
-        .addFields(...fields)
         .setTimestamp()
         .setColor(color)
+    if (fields) 
+        messageEmbed.addFields(...fields)
+    return messageEmbed
 }
 
 module.exports = {

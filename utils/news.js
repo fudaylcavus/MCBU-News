@@ -32,7 +32,7 @@ const parseNewsFromHTMLData = htmlData => {
     const banner = $('#ucWebLogo_imgBanner').attr('src')
 
     // If you parse url, header, description for your own website
-    // Everthing should still work fine!, only change this lines below
+    // Everthing should still work fine!, only change these lines below
     $('li.CustomLi').each((idx, el) => {
         const url = $(el).find('a').attr('href')
         const header = $(el).find('.CustomLiHeader').html();
