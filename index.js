@@ -9,7 +9,8 @@ const {
   anyNewInformation,
   fetchHtmlDataFrom,
   getEmbedMsgForNews,
-  getNotSentNews } = require('./utils/news.js')
+  getNotSentNews,
+  getLastNews } = require('./utils/news.js')
 
 const {
   connectToDB,
@@ -42,9 +43,6 @@ client.on('ready', async () => {
       }
     }
   }
-  console.log(news)
-  console.log('initial subs:')
-  console.log(subs)
 
   setInterval(async () => {
     news.forEach(async (aNews, baseURL) => {
@@ -119,6 +117,15 @@ client.on('messageCreate', async (message) => {
     })
   }
 
+  if (cmd === 'not-used-before') {
+    if (message.author.id != DC_ADMIN_ID) return;
+    console.log(await getSubscriptions());
+    client.guilds.cache.forEach(guild => {
+      console.log(guild.members)
+      console.log(guild.name)
+    })
+  }
+
   if (cmd === 'member-count') {
     if (message.author.id != DC_ADMIN_ID) return;
     let sum = 0;
@@ -130,6 +137,7 @@ client.on('messageCreate', async (message) => {
         console.log(err)
       })
   }
+
 
   if (cmd === 'invite') {
     let embedMsg = generateEmbed(

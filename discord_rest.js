@@ -8,6 +8,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 const getDeptOptions = (option) => {
   option.setName('department')
         .setDescription('Department URL to subscribe news')
+        .addChoice('Yabancı Diller Yüksekokulu', 'https://yabancidiller.mcbu.edu.tr/')
         .addChoice('Hasan Ferdi Turgutlu Teknoloji Fakültesi', 'https://hfttf.mcbu.edu.tr/')
         .addChoice('Erasmus+', 'https://erasmus.mcbu.edu.tr/')
         .addChoice('Mühendislik Fakültesi', 'https://muhendislik.mcbu.edu.tr/')
