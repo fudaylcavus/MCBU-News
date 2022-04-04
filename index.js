@@ -92,8 +92,8 @@ client.on('messageCreate', async (message) => {
   }
 
   if (cmd === 'notify-everyone') {
+    if (message.author.id != DC_ADMIN_ID)
     if (!args[1]) {
-
       return;
     }
     let words = args.slice(1);
@@ -109,12 +109,19 @@ client.on('messageCreate', async (message) => {
           generateEmbed(
             'Important!',
             words.join(' '),
-            [{ name: 'Sender', value: message.author.username }]
+            [{ name: 'Sender', value: 'MCBU News DevTeam' }]
           )]
       }).catch(err => {
         console.log(err)
       })
     })
+  }
+
+  if (cmd == 'terminate-') {
+    if (message.author.id != DC_ADMIN_ID) return;
+    message.channel.send("!!!EMERGENCY MODE!!!")
+    message.channel.send("SELF TERMINATION STARTED")
+    process.exit(-1)
   }
 
   if (cmd === 'not-used-before') {

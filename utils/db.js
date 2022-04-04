@@ -33,7 +33,6 @@ const saveSubscription = (channelId, departmentURL) => {
 
 }
 
-
 const saveUnsubscription = (channelId, departmentURL) => {
     let queryString = `DELETE FROM subscription WHERE channel_id = '${channelId}' AND department_url = '${departmentURL}'`;
     return poolQuery(queryString);

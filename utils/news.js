@@ -7,11 +7,11 @@ let lastFetchedNews;
 const getNotSentNews = (currentNewsData) => {
     let notSentNews = new Array();
     for (let i = 0; i < lastFetchedNews.length; i++) {
-        if (lastFetchedNews[i].description !== currentNewsData[0].description) {
-            notSentNews.push(lastFetchedNews[i]);
+        if (currentNewsData.some(news => news.description === lastFetchedNews[i].description)) {
+            break
         } else {
-            break;
-        }
+            notSentNews.push(lastFetchedNews[i])
+        } 
     }
     return [notSentNews, lastFetchedNews];
 }
